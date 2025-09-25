@@ -1,7 +1,8 @@
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 from typing import Any
 
-import parsedatetime
+import dateparser
 from rasa_sdk import Action, Tracker
 from rasa_sdk.events import SlotSet
 from rasa_sdk.executor import CollectingDispatcher
@@ -21,42 +22,6 @@ class ActionFindConcertsByGenreAndDate(Action):
     def name(self) -> str:
         return "action_find_concerts_by_genre_and_date"
 
-    def parse_date_or_range(self, date_str: str) -> tuple[datetime, datetime]:
-        """
-        Parses a date or natural language range using parsedatetime.
-        Returns a (start_date, end_date) tuple.
-        If it's a single day, start_date == end_date.
-        """
-        cal = parsedatetime.Calendar()
-        time_struct, parse_status = cal.parse(date_str)
-
-        if not parse_status:
-            return None, None
-
-        start_dt = datetime(*time_struct[:6])
-
-        # Check if the expression is likely a range
-        if "week" in date_str.lower():
-            end_dt = start_dt + timedelta(days=6)
-        elif "month" in date_str.lower():
-            # go to next month, subtract one day to get end of this month
-            year = start_dt.year
-            month = start_dt.month
-            if month == 12:
-                end_dt = datetime(year + 1, 1, 1) - timedelta(days=1)
-            else:
-                end_dt = datetime(year, month + 1, 1) - timedelta(days=1)
-        elif "weekend" in date_str.lower():
-            # start at Saturday
-            weekday = start_dt.weekday()
-            delta = (5 - weekday) % 7
-            start_dt = start_dt + timedelta(days=delta)
-            end_dt = start_dt + timedelta(days=1)  # Saturday + Sunday
-        else:
-            end_dt = start_dt  # default to single-day
-
-        return start_dt, end_dt
-
     def run(
         self,
         dispatcher: CollectingDispatcher,
@@ -72,7 +37,6 @@ class ActionFindConcertsByGenreAndDate(Action):
             )
             return []
 
-        # Parse date or date range
         start_date, end_date = self.parse_date_or_range(raw_date)
         if not start_date or not end_date:
             dispatcher.utter_message(
@@ -84,14 +48,12 @@ class ActionFindConcertsByGenreAndDate(Action):
         end_str = end_date.strftime("%Y-%m-%d")
 
         # Filter concerts by genre and date range
-        matching_concerts = []
-        for concert in CONCERTS_DB:
-            concert_date = datetime.strptime(concert["date"], "%Y-%m-%d")
-            if (
-                concert["genre"].lower() == genre.lower()
-                and start_date <= concert_date <= end_date
-            ):
-                matching_concerts.append(concert)
+        matching_concerts = [
+            concert
+            for concert in CONCERTS_DB
+            if concert["genre"].lower() == genre.lower()
+            and start_date <= datetime.strptime(concert["date"], "%Y-%m-%d") <= end_date
+        ]
 
         if matching_concerts:
             concert_list = "\n".join(
@@ -115,6 +77,51 @@ class ActionFindConcertsByGenreAndDate(Action):
                 SlotSet("matched_concerts", []),
                 SlotSet("date", f"{start_str} to {end_str}"),
             ]
+
+    def parse_date_or_range(self, text: str) -> tuple[datetime, datetime]:
+        now = datetime.now()
+
+        # Check for "September" or "September 2025"
+        month_match = re.search(
+            r"\b(january|february|march|april|may|june|july|august|september|october|november|december)\b(?:\s+(\d{4}))?",
+            text,
+            re.IGNORECASE,
+        )
+        if month_match:
+            month_name = month_match.group(1)
+            year = int(month_match.group(2)) if month_match.group(2) else now.year
+            month = datetime.strptime(month_name, "%B").month
+
+            start_date = datetime(year, month, 1)
+            if month == 12:
+                end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+            else:
+                end_date = datetime(year, month + 1, 1) - timedelta(days=1)
+            return start_date, end_date
+
+        # Handle "this weekend"
+        if "weekend" in text.lower():
+            today = now.date()
+            saturday = today + timedelta((5 - today.weekday()) % 7)
+            sunday = saturday + timedelta(days=1)
+            return datetime.combine(saturday, datetime.min.time()), datetime.combine(
+                sunday, datetime.max.time()
+            )
+
+        # Handle "this week" or "next week"
+        if "week" in text.lower():
+            parsed = dateparser.parse(text)
+            if parsed:
+                start = parsed - timedelta(days=parsed.weekday())  # Monday
+                end = start + timedelta(days=6)  # Sunday
+                return start, end
+
+        # Fallback: parse a single date
+        parsed_date = dateparser.parse(text, settings={"PREFER_DATES_FROM": "future"})
+        if parsed_date:
+            return parsed_date, parsed_date
+
+        return None, None
 
 
 class ActionBookConcertTicket(Action):

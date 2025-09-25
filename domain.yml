@@ -47,7 +47,7 @@ responses:
     - text: "What email address should I send the confirmation to?"
 
   utter_booking_complete:
-    - text: "Your ticket for {selected_concert} on {date} has been booked under the name {name}. A confirmation has been sent to {email}."
+    - text: "Your ticket for {selected_concert} has been booked under the name {name}. A confirmation has been sent to {email}."
 
   utter_free_chitchat_response:
     - text: "placeholder"
