@@ -1,0 +1,20 @@
+flows:
+  find_concerts:
+    description: Help users find concerts based on genre, date, or artist
+    steps:
+      - collect: genre
+        description: The preferred music genre (e.g., rock, jazz, pop)
+      - collect: date
+        description: The date the user wants to attend a concert
+      - action: action_find_concerts_by_genre_and_date
+
+  book_concert_ticket:
+    description: Help users book a concert after choosing one
+    steps:
+      - collect: selected_concert
+        description: The concert the user wants to book
+      - collect: name
+        description: The user's full name
+      - collect: email
+        description: The user's email address
+      - action: action_book_concert_ticket
