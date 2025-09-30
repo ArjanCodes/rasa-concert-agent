@@ -9,15 +9,6 @@ flows:
     steps:
       - noop: true
         next: END
-  pattern_session_start:
-    nlu_trigger:
-      - intent: session_start
-    description: Flow for starting the conversation
-    persisted_slots:
-      - customer_id
-    name: pattern session start
-    steps:
-      - action: utter_welcome_message
   pattern_correction:
     description: Instantly corrects the slot value without user confirmation or notification.
     steps:

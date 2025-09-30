@@ -2,9 +2,8 @@ action_endpoint:
   actions_module: "actions"
 
 nlg:
-  rephrase_all: true
+  rephrase_all: false
   summarize_history: false
-  prompt: prompt_templates/response-rephraser-template.jinja2
   model_group: openai-gpt-4o
 
 model_groups:

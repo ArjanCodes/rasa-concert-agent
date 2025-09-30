@@ -49,20 +49,6 @@ responses:
   utter_booking_complete:
     - text: "Your ticket for {selected_concert} has been booked under the name {name}. A confirmation has been sent to {email}."
 
-  utter_free_chitchat_response:
-    - text: "placeholder"
-      metadata:
-        rephrase: True
-        rephrase_prompt: |
-          The following is a conversation with an AI assistant built with Rasa.
-          The assistant can help the user transfer money.
-          The assistant is helpful, creative, clever, and very friendly.
-          The user is making small talk, and the assistant should respond, keeping things light.
-          Context / previous conversation with the user:
-          {{history}}
-          {{current_input}}
-          Suggested AI Response:
-
 actions:
   - action_find_concerts_by_genre_and_date
   - action_book_concert_ticket
