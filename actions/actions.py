@@ -51,7 +51,12 @@ class ActionFindConcertsByGenreAndDate(Action):
                         continue
 
                 # Check date match (if specified) - LLM provides dates in YYYY-MM-DD format
-                if start_date_str and start_date_str != "any" and end_date_str and end_date_str != "any":
+                if (
+                    start_date_str
+                    and start_date_str != "any"
+                    and end_date_str
+                    and end_date_str != "any"
+                ):
                     if not (start_date_str <= concert["date"] <= end_date_str):
                         continue
 
@@ -73,7 +78,12 @@ class ActionFindConcertsByGenreAndDate(Action):
                     ]
                 )
                 date_info = ""
-                if start_date_str and start_date_str != "any" and end_date_str and end_date_str != "any":
+                if (
+                    start_date_str
+                    and start_date_str != "any"
+                    and end_date_str
+                    and end_date_str != "any"
+                ):
                     date_info = f" between {start_date_str} and {end_date_str}"
 
                 dispatcher.utter_message(
@@ -89,6 +99,7 @@ class ActionFindConcertsByGenreAndDate(Action):
             )
             return [SlotSet("matched_concerts", [])]
 
+
 class ActionBookConcertTicket(Action):
     def name(self) -> str:
         return "action_book_concert_ticket"
@@ -100,7 +111,6 @@ class ActionBookConcertTicket(Action):
         domain: dict[str, Any],
     ) -> list[dict[str, Any]]:
         selected_concert = tracker.get_slot("selected_concert")
-        date = tracker.get_slot("date")
         name = tracker.get_slot("name")
         email = tracker.get_slot("email")
 
@@ -111,7 +121,7 @@ class ActionBookConcertTicket(Action):
             return []
 
         message = (
-            f"🎫 Your ticket for *{selected_concert}* on {date} has been booked under the name *{name}*.\n"
+            f"🎫 Your ticket for *{selected_concert}* has been booked under the name *{name}*.\n"
             f"A confirmation email will be sent to: {email}"
         )
 

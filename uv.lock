@@ -815,21 +815,6 @@ wheels = [
 ]
 
 [[package]]
-name = "dateparser"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "python-dateutil" },
-    { name = "pytz" },
-    { name = "regex" },
-    { name = "tzlocal" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/1a/b2/f6b29ab17d7959eb1a0a5c64f5011dc85051ad4e25e401cbddcc515db00f/dateparser-1.2.0.tar.gz", hash = "sha256:7975b43a4222283e0ae15be7b4999d08c9a70e2d378ac87385b1ccf2cffbbb30", size = 307260, upload-time = "2023-11-17T10:47:58.151Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a4/29/db12aa4dda81580be1999824a689bd52aa40061fc12c9ccdc3feab5ea718/dateparser-1.2.0-py2.py3-none-any.whl", hash = "sha256:0b21ad96534e562920a0083e97fd45fa959882d4162acc358705144520a35830", size = 294995, upload-time = "2023-11-17T10:47:56.127Z" },
-]
-
-[[package]]
 name = "demoji"
 version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3806,16 +3791,12 @@ name = "rasa-concert-agent"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "dateparser" },
     { name = "rasa-pro", version = "3.13.9", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
     { name = "rasa-pro", version = "3.13.12", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "dateparser", specifier = ">=1.2.0" },
-    { name = "rasa-pro", specifier = ">=3.13.9" },
-]
+requires-dist = [{ name = "rasa-pro", specifier = ">=3.13.9" }]
 
 [[package]]
 name = "rasa-pro"
