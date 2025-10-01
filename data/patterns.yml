@@ -1,11 +1,22 @@
 flows:
-  pattern_chitchat:
-    description: Conversation repair flow for off-topic interactions that won't disrupt the main conversation. should not respond to greetings or anything else for which there is a flow defined
-    name: pattern chitchat
+  pattern_session_start:
+    nlu_trigger:
+      - intent: session_start
+    description: Flow for starting the conversation
+    name: pattern session start
     steps:
-      - action: utter_free_chitchat_response
-  pattern_search:
-    description: Flow for handling knowledge-based questions
-    name: pattern search
+      - action: utter_welcome_message
+  pattern_continue_interrupted:
+    description: Handle resuming a previously interrupted flow without any action.
     steps:
-      - action: utter_free_chitchat_response
+      - noop: true
+        next: END
+  pattern_completed:
+    description: A pattern that does nothing when a flow completes
+    steps:
+      - noop: true
+        next: END
+  pattern_correction:
+    description: Instantly corrects the slot value without user confirmation or notification.
+    steps:
+      - action: action_correct_flow_slot

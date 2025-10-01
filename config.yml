@@ -3,7 +3,7 @@ language: en
 pipeline:
 - name: CompactLLMCommandGenerator
   llm:
-    model_group: rasa_command_generation_model
+    model_group: openai-gpt-4o
   flow_retrieval:
     active: false
 

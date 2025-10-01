@@ -1,8 +1,5 @@
-import re
-from datetime import datetime, timedelta
 from typing import Any
 
-import dateparser
 from rasa_sdk import Action, Tracker
 from rasa_sdk.events import SlotSet
 from rasa_sdk.executor import CollectingDispatcher
@@ -28,101 +25,69 @@ class ActionFindConcertsByGenreAndDate(Action):
         tracker: Tracker,
         domain: dict[str, Any],
     ) -> list[dict[str, Any]]:
+        artist = tracker.get_slot("artist")
         genre = tracker.get_slot("genre")
-        raw_date = tracker.get_slot("date")
+        start_date_str = tracker.get_slot("start_date")
+        end_date_str = tracker.get_slot("end_date")
+        exclude_keywords = tracker.get_slot("exclude_keywords")
 
-        if not genre or not raw_date:
-            dispatcher.utter_message(
-                text="Please specify both a music genre and a date or time range."
-            )
-            return []
+        try:
+            # Parse exclusion keywords
+            excluded = []
+            if exclude_keywords and exclude_keywords != "default":
+                excluded = [kw.strip().lower() for kw in exclude_keywords.split()]
 
-        start_date, end_date = self.parse_date_or_range(raw_date)
-        if not start_date or not end_date:
-            dispatcher.utter_message(
-                text=f"Sorry, I couldn't understand the date or range '{raw_date}'."
-            )
-            return []
+            # Filter concerts
+            matching_concerts = []
+            for concert in CONCERTS_DB:
+                # Check artist match (if specified)
+                if artist and artist != "any":
+                    if concert["artist"].lower() != artist.lower():
+                        continue
 
-        start_str = start_date.strftime("%Y-%m-%d")
-        end_str = end_date.strftime("%Y-%m-%d")
+                # Check genre match (if specified)
+                if genre and genre != "any":
+                    if concert["genre"].lower() != genre.lower():
+                        continue
 
-        # Filter concerts by genre and date range
-        matching_concerts = [
-            concert
-            for concert in CONCERTS_DB
-            if concert["genre"].lower() == genre.lower()
-            and start_date <= datetime.strptime(concert["date"], "%Y-%m-%d") <= end_date
-        ]
+                # Check date match (if specified) - LLM provides dates in YYYY-MM-DD format
+                if start_date_str and start_date_str != "any" and end_date_str and end_date_str != "any":
+                    if not (start_date_str <= concert["date"] <= end_date_str):
+                        continue
 
-        if matching_concerts:
-            concert_list = "\n".join(
-                [
-                    f"{c['artist']} ({c['genre']}) on {c['date']}"
-                    for c in matching_concerts
-                ]
-            )
-            dispatcher.utter_message(
-                text=f"🎶 Here are the concerts I found between {start_str} and {end_str}:\n{concert_list}"
-            )
-            return [
-                SlotSet("matched_concerts", concert_list),
-                SlotSet("date", f"{start_str} to {end_str}"),
-            ]
-        else:
-            dispatcher.utter_message(
-                text=f"Sorry, I couldn't find any {genre} concerts between {start_str} and {end_str}."
-            )
-            return [
-                SlotSet("matched_concerts", []),
-                SlotSet("date", f"{start_str} to {end_str}"),
-            ]
+                # Check exclusions
+                if any(
+                    ex in concert["artist"].lower() or ex in concert["genre"].lower()
+                    for ex in excluded
+                ):
+                    continue
 
-    def parse_date_or_range(self, text: str) -> tuple[datetime, datetime]:
-        now = datetime.now()
+                matching_concerts.append(concert)
 
-        # Check for "September" or "September 2025"
-        month_match = re.search(
-            r"\b(january|february|march|april|may|june|july|august|september|october|november|december)\b(?:\s+(\d{4}))?",
-            text,
-            re.IGNORECASE,
-        )
-        if month_match:
-            month_name = month_match.group(1)
-            year = int(month_match.group(2)) if month_match.group(2) else now.year
-            month = datetime.strptime(month_name, "%B").month
+            # Format results
+            if matching_concerts:
+                concert_list = "\n".join(
+                    [
+                        f"{c['artist']} ({c['genre']}) on {c['date']}"
+                        for c in matching_concerts
+                    ]
+                )
+                date_info = ""
+                if start_date_str and start_date_str != "any" and end_date_str and end_date_str != "any":
+                    date_info = f" between {start_date_str} and {end_date_str}"
 
-            start_date = datetime(year, month, 1)
-            if month == 12:
-                end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+                dispatcher.utter_message(
+                    text=f"🎶 Here are the concerts I found{date_info}:\n{concert_list}"
+                )
+                return [SlotSet("matched_concerts", concert_list)]
             else:
-                end_date = datetime(year, month + 1, 1) - timedelta(days=1)
-            return start_date, end_date
+                return [SlotSet("matched_concerts", [])]
 
-        # Handle "this weekend"
-        if "weekend" in text.lower():
-            today = now.date()
-            saturday = today + timedelta((5 - today.weekday()) % 7)
-            sunday = saturday + timedelta(days=1)
-            return datetime.combine(saturday, datetime.min.time()), datetime.combine(
-                sunday, datetime.max.time()
+        except Exception as e:
+            dispatcher.utter_message(
+                text=f"Sorry, I encountered an error searching for concerts: {str(e)}"
             )
-
-        # Handle "this week" or "next week"
-        if "week" in text.lower():
-            parsed = dateparser.parse(text)
-            if parsed:
-                start = parsed - timedelta(days=parsed.weekday())  # Monday
-                end = start + timedelta(days=6)  # Sunday
-                return start, end
-
-        # Fallback: parse a single date
-        parsed_date = dateparser.parse(text, settings={"PREFER_DATES_FROM": "future"})
-        if parsed_date:
-            return parsed_date, parsed_date
-
-        return None, None
-
+            return [SlotSet("matched_concerts", [])]
 
 class ActionBookConcertTicket(Action):
     def name(self) -> str:

@@ -1,0 +1,12 @@
+version: "3.1"
+
+responses:
+
+  utter_welcome_message:
+    - text: "Hi there! I can help you find concert tickets."
+
+  utter_free_chitchat_response:
+    - text: "placeholder"
+
+  utter_refuse:
+    - text: "sorry, but I can't do that"
