@@ -6,25 +6,16 @@ flows:
       - genre
       - start_date
       - end_date
-      - exclude_keywords
     steps:
       - collect: artist
         description: A specific artist or band the user is interested in. Only set this slot with REAL artist names the user explicitly mentions. Set to 'any' if user has no preference or wants to browse by genre.
-        next:
-          - if: slots.artist is 'any'
-            then:
-              - collect: genre
-                description: The type of music the user is looking for (rock, pop, jazz). Take one of the allowed values of the slot that's closest to what the user asked for. Set to 'any' if user has no preference.
-                next: "collect_dates"
-          - else: "collect_dates"
+      - collect: genre
+        description: The type of music the user is looking for (rock, pop, jazz). Take one of the allowed values of the slot that's closest to what the user asked for. Set to 'any' if user has no preference.
       - id: "collect_dates"
         collect: start_date
         description: The start date in YYYY-MM-DD format (fyi today is '2025-09-01'). Parse the user's date/time expression and convert it to this format. For ranges like 'this weekend' or 'next week', calculate the start date. Set to 'any' if user has no preference.
       - collect: end_date
         description: The end date in YYYY-MM-DD format (fyi today is '2025-09-01'). For single dates, use the same value as start_date. For ranges, calculate the end date. Set to 'any' if user has no preference.
-      - id: "exclude_keywords_step"
-        collect: exclude_keywords
-        description: Keywords to exclude from concert search, separated by spaces. If user rejects the suggested concert with phrases like 'anything else', 'show me something different', 'not that one', extract keywords from the previously shown concert artist or mentioned artists they don't want.
       - action: action_find_concerts_by_genre_and_date
         next:
           - if: not slots.matched_concerts
@@ -32,14 +23,3 @@ flows:
               - action: utter_no_matches_found
                 next: END
           - else: END
-
-  book_concert_ticket:
-    description: Help users book a concert after choosing one
-    steps:
-      - collect: selected_concert
-        description: The concert the user wants to book
-      - collect: name
-        description: The user's full name
-      - collect: email
-        description: The user's email address
-      - action: action_book_concert_ticket

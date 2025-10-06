@@ -25,47 +25,17 @@ class ActionFindConcertsByGenreAndDate(Action):
         tracker: Tracker,
         domain: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        artist = tracker.get_slot("artist")
-        genre = tracker.get_slot("genre")
         start_date_str = tracker.get_slot("start_date")
         end_date_str = tracker.get_slot("end_date")
-        exclude_keywords = tracker.get_slot("exclude_keywords")
 
         try:
-            # Parse exclusion keywords
-            excluded = []
-            if exclude_keywords and exclude_keywords != "default":
-                excluded = [kw.strip().lower() for kw in exclude_keywords.split()]
-
             # Filter concerts
             matching_concerts = []
             for concert in CONCERTS_DB:
-                # Check artist match (if specified)
-                if artist and artist != "any":
-                    if concert["artist"].lower() != artist.lower():
-                        continue
-
-                # Check genre match (if specified)
-                if genre and genre != "any":
-                    if concert["genre"].lower() != genre.lower():
-                        continue
-
                 # Check date match (if specified) - LLM provides dates in YYYY-MM-DD format
-                if (
-                    start_date_str
-                    and start_date_str != "any"
-                    and end_date_str
-                    and end_date_str != "any"
-                ):
+                if start_date_str and end_date_str:
                     if not (start_date_str <= concert["date"] <= end_date_str):
                         continue
-
-                # Check exclusions
-                if any(
-                    ex in concert["artist"].lower() or ex in concert["genre"].lower()
-                    for ex in excluded
-                ):
-                    continue
 
                 matching_concerts.append(concert)
 
@@ -78,12 +48,7 @@ class ActionFindConcertsByGenreAndDate(Action):
                     ]
                 )
                 date_info = ""
-                if (
-                    start_date_str
-                    and start_date_str != "any"
-                    and end_date_str
-                    and end_date_str != "any"
-                ):
+                if start_date_str and end_date_str:
                     date_info = f" between {start_date_str} and {end_date_str}"
 
                 dispatcher.utter_message(
@@ -98,32 +63,3 @@ class ActionFindConcertsByGenreAndDate(Action):
                 text=f"Sorry, I encountered an error searching for concerts: {str(e)}"
             )
             return [SlotSet("matched_concerts", [])]
-
-
-class ActionBookConcertTicket(Action):
-    def name(self) -> str:
-        return "action_book_concert_ticket"
-
-    def run(
-        self,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: dict[str, Any],
-    ) -> list[dict[str, Any]]:
-        selected_concert = tracker.get_slot("selected_concert")
-        name = tracker.get_slot("name")
-        email = tracker.get_slot("email")
-
-        if not all([selected_concert, name, email]):
-            dispatcher.utter_message(
-                text="I need a few more details to complete your booking."
-            )
-            return []
-
-        message = (
-            f"🎫 Your ticket for *{selected_concert}* has been booked under the name *{name}*.\n"
-            f"A confirmation email will be sent to: {email}"
-        )
-
-        dispatcher.utter_message(text=message)
-        return []

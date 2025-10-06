@@ -15,14 +15,13 @@ slots:
       - "rock"
       - "pop"
       - "jazz"
-      - "any"
-    initial_value: "any"
+    initial_value: null
 
   date_range:
     type: text
     mappings:
       - type: from_llm
-    initial_value: "any"
+    initial_value: null
 
   start_date:
     type: text
@@ -42,55 +41,19 @@ slots:
       - type: controlled
     initial_value: []
 
-  selected_concert:
-    type: text
-    mappings:
-      - type: from_llm
-
-  name:
-    type: text
-    mappings:
-      - type: from_llm
-
-  email:
-    type: text
-    mappings:
-      - type: from_llm
-
-  exclude_keywords:
-    type: text
-    mappings:
-      - type: from_llm
-    initial_value: "default"
-
 responses:
 
   utter_ask_artist:
     - text: "Are you looking for a specific artist?"
 
   utter_ask_genre:
-    - text: "What type of music are you interested in? (rock, pop, jazz, or any)"
+    - text: "What type of music are you interested in? (rock, pop, jazz)"
 
   utter_ask_start_date:
     - text: "When would you like to go?"
 
   utter_ask_end_date:
     - text: "And how long are you thinking? Just that day or through when?"
-
-  utter_ask_exclude_keywords:
-    - text: "What would you like me to exclude from the search?"
-
-  utter_ask_selected_concert:
-    - text: "Which concert would you like to book?"
-
-  utter_ask_name:
-    - text: "What name should I put the ticket under?"
-
-  utter_ask_email:
-    - text: "What email address should I send the confirmation to?"
-
-  utter_booking_complete:
-    - text: "Your ticket for {selected_concert} has been booked under the name {name}. A confirmation has been sent to {email}."
 
   utter_no_matches_found:
     - condition: (slots.artist is not null or slots.genre is not null) and slots.date_range is not null
@@ -101,4 +64,3 @@ responses:
 
 actions:
   - action_find_concerts_by_genre_and_date
-  - action_book_concert_ticket
