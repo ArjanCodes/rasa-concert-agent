@@ -6,12 +6,12 @@ from rasa_sdk.executor import CollectingDispatcher
 
 # 🎵 Hardcoded concert "database"
 CONCERTS_DB = [
-    {"artist": "The Strokes", "genre": "rock", "date": "2025-09-28"},
-    {"artist": "Adele", "genre": "pop", "date": "2025-09-29"},
-    {"artist": "Herbie Hancock", "genre": "jazz", "date": "2025-09-28"},
-    {"artist": "Imagine Dragons", "genre": "rock", "date": "2025-09-30"},
-    {"artist": "Norah Jones", "genre": "jazz", "date": "2025-09-29"},
-    {"artist": "Billie Eilish", "genre": "pop", "date": "2025-09-30"},
+    {"artist": "The Strokes", "genre": "rock", "date": "2025-10-28"},
+    {"artist": "Adele", "genre": "pop", "date": "2025-10-29"},
+    {"artist": "Herbie Hancock", "genre": "jazz", "date": "2025-10-28"},
+    {"artist": "Imagine Dragons", "genre": "rock", "date": "2025-10-30"},
+    {"artist": "Norah Jones", "genre": "jazz", "date": "2025-10-29"},
+    {"artist": "Billie Eilish", "genre": "pop", "date": "2025-10-30"},
 ]
 
 
